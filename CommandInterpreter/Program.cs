@@ -86,29 +86,34 @@ namespace CommandInterpreter
 
 		private static bool IsItValidInput(string[] tokens, List<string> strings)
 		{
-			var isValid = true;
-			var start = 0;
-			var count = 0;
-			if (tokens[0] == "reverse" || tokens[0] == "sort")
+			checked
 			{
-				start = int.Parse(tokens[2]);
-				count = int.Parse(tokens[4]);
-				long end = start + count - 1;
-				if (start < 0 || start >= strings.Count || count < 0 || end >= strings.Count)
-				{
-					isValid = false;
-				}
-			}
-			else
-			{
-				count = int.Parse(tokens[1]);
-				if (count < 0)
-				{
-					isValid = false;
-				}
-			}
 
-			return isValid;
+
+				var isValid = true;
+				var start = 0;
+				var count = 0;
+				if (tokens[0] == "reverse" || tokens[0] == "sort")
+				{
+					start = int.Parse(tokens[2]);
+					count = int.Parse(tokens[4]);
+					long end = start + count - 1;
+					if (start < 0 || start >= strings.Count || count < 0 || end >= strings.Count)
+					{
+						isValid = false;
+					}
+				}
+				else
+				{
+					count = int.Parse(tokens[1]);
+					if (count < 0)
+					{
+						isValid = false;
+					}
+				}
+
+				return isValid;
+			}
 		}
 		
 	}
