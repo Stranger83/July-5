@@ -10,111 +10,106 @@ namespace CommandInterpreter
 	{	
 		static void Main(string[] args)
 		{
-			var strings = Console.ReadLine().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+			var strings = Console.ReadLine()
+				.Split();
 			while (true)
 			{
-				var line = Console.ReadLine().ToLower();
+				var line = Console.ReadLine().ToLower().Trim();
 				if (line == "end")
 				{
 					break;
 				}
-				var tokens = line.Split(' ');
-				var command = tokens[0];
-				var isValidInput = IsItValidInput(tokens, strings);
-
-				if (!isValidInput)
-				{
-					Console.WriteLine("Invalid input parameters.");
-					continue;
-				}
-				switch (command)
-				{
-					case "reverse":
-						Reverse(strings, tokens);
-						break;
-					case "sort":
-						Sort(strings, tokens);
-						break;
-					case "rollleft":
-						RollLeft(strings, tokens);
-						break;
-					case "rollright":
-						RollRight(strings, tokens);
-						break;
-				}
-
+				var commandParts = line.Split();
+				var commandName = commandParts[0];
+				ProcessCommand(strings, commandName, commandParts);
 			}
 			Console.WriteLine($"[{string.Join(", ", strings)}]");
 		}
 
-		private static void RollRight(List<string> strings, string[] tokens)
+		private static void ProcessCommand(string[] strings, string cmd, string[] cmdParts)
 		{
-			var count = int.Parse(tokens[1]);
-			for (int i = 0; i < count % strings.Count; i++)
+			if (cmd == "sort" || cmd == "reverse")
 			{
-				strings.Insert(0, strings[strings.Count - 1]);
-				strings.RemoveAt(strings.Count - 1);
+				ProcessSortOrReverseCommand(strings, cmd, cmdParts);
+			}
+			if (cmd == "rollleft" || cmd == "rollright")
+			{
+				ProcessRollLeftOrRightCommand(strings, cmd, cmdParts);
 			}
 		}
 
-		private static void RollLeft(List<string> strings, string[] tokens)
+		private static void ProcessRollLeftOrRightCommand(string[] strings, string cmd, string[] cmdParts)
 		{
-			var count = int.Parse(tokens[1]);
-			for (int i = 0; i < count % strings.Count; i++)
+			var count = int.Parse(cmdParts[1]);
+			if (count < 0)
 			{
-				strings.Add(strings[0]);
-				strings.RemoveAt(0);
+				Console.WriteLine("Invalid input parameters.");
+				return;
+			}
+			if (cmd == "rollleft")
+			{
+				RollRight(strings, -count);
+			}
+			else if (cmd == "rollright")
+			{
+				RollRight(strings, count);
 			}
 		}
 
-		private static void Sort(List<string> strings, string[] tokens)
+		private static void ProcessSortOrReverseCommand(string[] strings, string cmd, string[] cmdParts)
 		{
-			var start = int.Parse(tokens[2]);
-			var count = int.Parse(tokens[4]);
-			strings.Sort(start, count, StringComparer.Ordinal);
-		}
-
-		private static void Reverse(List<string> strings, string[] tokens)
-		{
-			var start = int.Parse(tokens[2]);
-			var count = int.Parse(tokens[4]);
-			List<string> listToReverse = strings.GetRange(start, count);
-			listToReverse.Reverse();
-			strings.RemoveRange(start, count);
-			strings.InsertRange(start, listToReverse);
-		}
-
-		private static bool IsItValidInput(string[] tokens, List<string> strings)
-		{
-			checked
+			var start = int.Parse(cmdParts[2]);
+			var count = int.Parse(cmdParts[4]);
+			if (start < 0 || start >= strings.Length ||
+				start + count - 1 >= strings.Length || count < 0)
 			{
+				Console.WriteLine("Invalid input parameters.");
+				return;
+			}
+			if (cmd == "sort") {
+				SortRange(strings, start, count);
+			}
+			else if (cmd == "reverse")
+			{
+				ReverseRange(strings, start, count);
+			}
+		}
 
+		private static void ReverseRange(string[] strings, int start, int count)
+		{
+			var end = start + count - 1;
+			while (start < end)
+			{
+				var old = strings[start];
+				strings[start] = strings[end];
+				strings[end] = old;
+				start++;
+				end--;
+			}
+		}
 
-				var isValid = true;
-				var start = 0;
-				var count = 0;
-				if (tokens[0] == "reverse" || tokens[0] == "sort")
+		private static void SortRange(string[] strings, int start, int count)
+		{
+			Array.Sort(strings, start, count);	
+		}
+
+		private static void RollRight(string[] strings, int count)
+		{
+			var result = new string[strings.Length];
+			for (int oldIndex = 0; oldIndex < strings.Length; oldIndex++)
+			{
+				var newIndex = oldIndex + count;
+				newIndex = newIndex % strings.Length;
+				if (newIndex < 0)
 				{
-					start = int.Parse(tokens[2]);
-					count = int.Parse(tokens[4]);
-					long end = start + count - 1;
-					if (start < 0 || start >= strings.Count || count < 0 || end >= strings.Count)
-					{
-						isValid = false;
-					}
+					newIndex += strings.Length;
 				}
-				else
-				{
-					count = int.Parse(tokens[1]);
-					if (count < 0)
-					{
-						isValid = false;
-					}
-				}
-
-				return isValid;
+				result[newIndex] = strings[oldIndex];
 			}
+			for (int i = 0; i < strings.Length; i++)
+			{
+				strings[i] = result[i];
+			};
 		}
-		
 	}
 }
